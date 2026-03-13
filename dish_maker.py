@@ -168,7 +168,6 @@ def evaluate_array_aliasing(params, X_2d, Y_2d, az_grid, el_grid, F, aperture_ma
         valid_x = valid_mask[:, :-1] * valid_mask[:, 1:] * aperture_mask_2d[:, :-1] * aperture_mask_2d[:, 1:]
         valid_y = valid_mask[:-1, :] * valid_mask[1:, :] * aperture_mask_2d[:-1, :] * aperture_mask_2d[1:, :]
         
-        # --- Gradients in the Aperture X-direction mapped to Array ---
         dx_hit_x = x_hit[:, 1:] - x_hit[:, :-1]
         dy_hit_x = y_hit[:, 1:] - y_hit[:, :-1]
         ds_array_x = jnp.sqrt(dx_hit_x**2 + dy_hit_x**2) + 1e-8 # Physical distance on array
@@ -176,7 +175,6 @@ def evaluate_array_aliasing(params, X_2d, Y_2d, az_grid, el_grid, F, aperture_ma
         
         grad_array_x = (dl_x / ds_array_x) * valid_x
         
-        # --- Gradients in the Aperture Y-direction mapped to Array ---
         dx_hit_y = x_hit[1:, :] - x_hit[:-1, :]
         dy_hit_y = y_hit[1:, :] - y_hit[:-1, :]
         ds_array_y = jnp.sqrt(dx_hit_y**2 + dy_hit_y**2) + 1e-8 # Physical distance on array
@@ -284,10 +282,8 @@ def optimize_reflector(F, x_aperture, y_aperture, X_2d, Y_2d, aperture_mask_2d):
         loss, params, opt_state, _ = step(params, opt_state, F, current_sharpness)
 
         if i % 1500 == 0:
-            # 1. Evaluate traditional wavefront gradient on the aperture
             max_aperture_gradient = evaluate_wavefront(params, X_2d, Y_2d, az_grid, el_grid, F, aperture_mask_2d)
             
-            # 2. Evaluate element-to-element aliasing on the array (Assuming 0.11m spacing for L-band)
             element_spacing = 0.11
             max_element_diff = evaluate_array_aliasing(params, X_2d, Y_2d, az_grid, el_grid, F, aperture_mask_2d, element_spacing)
             
@@ -342,7 +338,6 @@ def plot_ray_footprints(params, F, D=15.0):
                                    linestyle='--', label='Physical Array Boundary')
     ax.add_patch(array_rect)
 
-    # 4. Ray trace and plot each angle
     colors = plt.cm.tab10.colors
     for idx, (az, el) in enumerate(test_angles):
 
@@ -363,7 +358,7 @@ def plot_ray_footprints(params, F, D=15.0):
 
         print(f"Beam Az {az:5.1f}°, El {el:5.1f}° | Rays Captured: {num_captured}/{num_total} | Efficiency: {efficiency:6.2f}%")
 
-        # FIX: Filter the arrays before plotting so shadowed rays are visually dropped
+        # Filter the arrays before plotting so shadowed rays are visually dropped
         valid_idx = valid_mask > 0.5
         x_plot = x_hit[valid_idx]
         y_plot = y_hit[valid_idx]
@@ -377,7 +372,6 @@ def plot_ray_footprints(params, F, D=15.0):
         y_target = -(el / 15.0) * 1.8
         ax.plot(x_target, y_target, marker='x', color='black', markersize=8, markeredgewidth=2)
 
-    # 5. Formatting (Ensuring 1:1 physical aspect ratio)
     ax.set_xlim(-0.8, 0.8)
     ax.set_ylim(-3.0, 3.0)
     ax.set_aspect('equal')
@@ -427,10 +421,9 @@ if __name__ == "__main__":
 
     num_spatial = 60
     x_lin = jnp.linspace(X_OFFSET - D/2, X_OFFSET + D/2, num_spatial)
-    y_lin = jnp.linspace(Y_OFFSET - D/2, Y_OFFSET + D/2, num_spatial) # <-- Update y_lin
+    y_lin = jnp.linspace(Y_OFFSET - D/2, Y_OFFSET + D/2, num_spatial) 
     X, Y = jnp.meshgrid(x_lin, y_lin)
 
-    # <-- Update the mask to use Y_OFFSET
     aperture_mask = ((X - X_OFFSET)**2 + (Y - Y_OFFSET)**2) <= (D/2)**2
     valid_rays_mask = aperture_mask
 
@@ -447,4 +440,4 @@ if __name__ == "__main__":
         print_capture_efficiencies(params, x_aperture, y_aperture, F)
 
 
-    plot_ray_footprints(params_list[4], 0.37 * D) # for f/D = 0.4
+    plot_ray_footprints(params_list[4], 0.37 * D) 
