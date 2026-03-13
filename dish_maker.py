@@ -292,7 +292,7 @@ def optimize_reflector(F, x_aperture, y_aperture, X_2d, Y_2d, aperture_mask_2d):
             
             print(f"Epoch {i:5d} | Loss: {loss:.6f} | Focus (f/D): {F/D:.6f}")
             print(f"          -> Max Aperture Gradient: {max_aperture_gradient:.4f} m/m ({grad_in_lambdas_per_m:.2f} λ/m)")
-            print(f"          -> Max Adjacent Element $\Delta$L: {max_element_diff:.4f} m ({diff_in_lambdas:.2f} λ)")
+            print(f"          -> Max Adjacent Element deltaL: {max_element_diff:.4f} m ({diff_in_lambdas:.2f} λ)")
             
             # Threshold Check: If Delta L > lambda/2, DBF will alias
             if diff_in_lambdas > 0.5:
